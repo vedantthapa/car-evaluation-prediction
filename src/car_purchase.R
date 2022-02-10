@@ -29,6 +29,9 @@ valid = outer_train[-inner_train.idx,]
 valid.true = valid$shouldBuy
 valid$shouldBuy = NA
 
+inner_train$is_high_maintenance = ifelse(inner_train$maintenance %in% c("vhigh", "high"), 1, 0)
+valid$is_high_maintenance = ifelse(valid$maintenance %in% c("vhigh", "high"), 1, 0)
+
 set.seed(42)
 kfold = trainControl(method="cv",
                      number=10,
