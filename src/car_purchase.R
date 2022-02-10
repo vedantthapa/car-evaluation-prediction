@@ -26,24 +26,42 @@ inner_train.idx <- createDataPartition(
 inner_train = outer_train[inner_train.idx,]
 valid = outer_train[-inner_train.idx,]
 
+valid.true = valid$shouldBuy
+valid$shouldBuy = NA
+
 set.seed(42)
 kfold = trainControl(method="cv",number=10)
 
+mask.valid = (valid$safety == "low") | (valid$seats == 2)
+mask.train = (inner_train$safety == "low") | (inner_train$seats == 2)
+
+inner_train.rule = inner_train[mask.train, ]
+inner_train.model = inner_train[!mask.train, ]
+valid.rule = valid[mask.valid, ]
+valid.model = valid[!mask.valid, ]
+
 set.seed(42)
 dt <- train(shouldBuy ~ .,
-            data = inner_train,
+            data = inner_train.model,
             method = "rpart",
             parms = list(split="information"),
             trControl = kfold)
 
-inner_train.pred = predict(dt, inner_train)
-valid.pred = predict(dt, valid)
+inner_train.model$shouldBuy = predict(dt, inner_train.model)
+valid.model$shouldBuy = predict(dt, valid.model)
 
-confusionMatrix(data = valid.pred,
-                reference = as.factor(valid$shouldBuy))
+inner_train.rule$shouldBuy = rep("unacc", dim(inner_train.rule)[1])
+valid.rule$shouldBuy = rep("unacc", dim(valid.rule)[1])
 
-inner_train.prob = predict(dt, inner_train, prob = TRUE)
-valid.prob = predict(dt, valid, prob = TRUE)
+valid[row.names(valid.model), "shouldBuy"] = as.vector(valid.model$shouldBuy)
+valid[row.names(valid.rule), "shouldBuy"] = valid.rule$shouldBuy
+
+confusionMatrix(data = as.factor(valid$shouldBuy),
+                reference = as.factor(valid.true))
+
+inner_train.model.prob = predict(dt, inner_train.model, prob = TRUE)
+valid.model.prob = predict(dt, valid.model, prob = TRUE)
+
 
 
 valid.roc = multiclass.roc(valid$shouldBuy, as.numeric(valid.prob))
