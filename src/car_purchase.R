@@ -42,11 +42,8 @@ valid.pred = predict(dt, valid)
 confusionMatrix(data = valid.pred,
                 reference = as.factor(valid$shouldBuy))
 
-inner_train.prob = predict(dt, inner_train, prob = TRUE)
-valid.prob = predict(dt, valid, prob = TRUE)
 
-
-valid.roc = multiclass.roc(valid$shouldBuy, as.numeric(valid.prob))
+valid.roc = multiclass.roc(valid$shouldBuy, as.numeric(valid.pred))
 auc(valid.roc)
 
 
