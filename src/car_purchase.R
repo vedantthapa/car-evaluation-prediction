@@ -27,14 +27,26 @@ inner_train = outer_train[inner_train.idx,]
 valid = outer_train[-inner_train.idx,]
 
 set.seed(42)
-kfold = trainControl(method="cv",number=10)
+kfold = trainControl(method="cv",
+                     number=10, 
+                     classProbs = TRUE, 
+                     summaryFunction = multiClassSummary)
+
+# model_weights = ifelse(inner_train$shouldBuy == "acc",
+#                        (1/table(inner_train$shouldBuy)[1]) * 0.25,
+#                        ifelse(inner_train$shouldBuy == "good",
+#                               (1/table(inner_train$shouldBuy)[2]) * 0.25,
+#                               ifelse(inner_train$shouldBuy == "unacc",
+#                                      (1/table(inner_train$shouldBuy)[3]) * 0.25,
+#                                      (1/table(inner_train$shouldBuy)[4]) * 0.25)))
 
 set.seed(42)
 dt <- train(shouldBuy ~ .,
             data = inner_train,
             method = "rpart",
             parms = list(split="information"),
-            trControl = kfold)
+            trControl = kfold,
+            metric = "Accuracy")
 
 inner_train.pred = predict(dt, inner_train)
 valid.pred = predict(dt, valid)
