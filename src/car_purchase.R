@@ -43,7 +43,7 @@ set.seed(42)
 dt <- train(shouldBuy ~ .,
             data = inner_train,
             method = "rpart",
-            parms = list(split="information"),
+            parms = list(split="gini"),
             trControl = kfold,
             metric = "Accuracy")
 
