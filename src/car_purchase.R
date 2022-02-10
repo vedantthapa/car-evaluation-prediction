@@ -55,7 +55,7 @@ confusionMatrix(data = valid$shouldBuy,
                 reference = as.factor(valid.true))
 
 
-valid.roc = multiclass.roc(valid.true, as.numeric(valid$shou))
+valid.roc = multiclass.roc(valid.true, as.numeric(valid$shouldBuy))
 auc(valid.roc)
 
 
