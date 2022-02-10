@@ -30,21 +30,16 @@ valid.true = valid$shouldBuy
 valid$shouldBuy = NA
 
 set.seed(42)
-kfold = trainControl(method="cv",number=10)
+kfold = trainControl(method="cv",
+                     number=10,
+                     verboseIter = TRUE,
+                     summaryFunction = multiClassSummary)
 
 mask.valid = (valid$safety == "low") | (valid$seats == 2)
 mask.train = (inner_train$safety == "low") | (inner_train$seats == 2)
 
 inner_train.rule = inner_train[mask.train, ]
 inner_train.model = inner_train[!mask.train, ]
-model_weights = ifelse(inner_train.model$shouldBuy == "acc",
-                       (1/table(inner_train.model$shouldBuy)[1]) * 0.25,
-                       ifelse(inner_train.model$shouldBuy == "good",
-                              (1/table(inner_train.model$shouldBuy)[2]) * 0.25,
-                              ifelse(inner_train.model$shouldBuy == "unacc",
-                                     (1/table(inner_train.model$shouldBuy)[3]) * 0.25,
-                                     (1/table(inner_train.model$shouldBuy)[4]) * 0.25)))
-sum(model_weights)
 
 valid.rule = valid[mask.valid, ]
 valid.model = valid[!mask.valid, ]
@@ -54,7 +49,6 @@ dt <- train(shouldBuy ~ .,
             data = inner_train.model,
             method = "rpart",
             parms = list(split="information"),
-            weights = model_weights,
             trControl = kfold)
 
 inner_train.model$shouldBuy = predict(dt, inner_train.model)

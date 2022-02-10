@@ -46,3 +46,23 @@ dim(inner_train.model)
 dim(valid.rule)
 dim(valid.model)
 
+(inner_train) %>%
+  group_by(shouldBuy,price)%>%
+  summarise(n=n())
+
+(inner_train) %>%
+  group_by(shouldBuy,maintenance)%>%
+  summarise(n=n())
+
+(inner_train) %>%
+  group_by(shouldBuy,doors)%>%
+  summarise(n=n())
+
+(inner_train) %>%
+  group_by(shouldBuy,seats)%>%
+  summarise(n=n())
+
+(inner_train) %>%
+  group_by(shouldBuy,storage)%>%
+  summarise(n=n())
+
