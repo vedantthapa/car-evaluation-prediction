@@ -40,6 +40,11 @@ kfold = trainControl(method="cv",
 #                                      (1/table(inner_train$shouldBuy)[3]) * 0.25,
 #                                      (1/table(inner_train$shouldBuy)[4]) * 0.25)))
 
+
+inner_train$is_high_maintenance = ifelse(inner_train$maintenance %in% c("vhigh", "high"), 1, 0)
+valid$is_high_maintenance = ifelse(valid$maintenance %in% c("vhigh", "high"), 1, 0)
+
+
 set.seed(42)
 dt <- train(shouldBuy ~ .,
             data = inner_train,
