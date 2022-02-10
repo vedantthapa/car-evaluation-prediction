@@ -37,6 +37,15 @@ mask.train = (inner_train$safety == "low") | (inner_train$seats == 2)
 
 inner_train.rule = inner_train[mask.train, ]
 inner_train.model = inner_train[!mask.train, ]
+model_weights = ifelse(inner_train.model$shouldBuy == "acc",
+                       (1/table(inner_train.model$shouldBuy)[1]) * 0.25,
+                       ifelse(inner_train.model$shouldBuy == "good",
+                              (1/table(inner_train.model$shouldBuy)[2]) * 0.25,
+                              ifelse(inner_train.model$shouldBuy == "unacc",
+                                     (1/table(inner_train.model$shouldBuy)[3]) * 0.25,
+                                     (1/table(inner_train.model$shouldBuy)[4]) * 0.25)))
+sum(model_weights)
+
 valid.rule = valid[mask.valid, ]
 valid.model = valid[!mask.valid, ]
 
@@ -45,6 +54,7 @@ dt <- train(shouldBuy ~ .,
             data = inner_train.model,
             method = "rpart",
             parms = list(split="information"),
+            weights = model_weights,
             trControl = kfold)
 
 inner_train.model$shouldBuy = predict(dt, inner_train.model)
@@ -59,12 +69,10 @@ valid[row.names(valid.rule), "shouldBuy"] = valid.rule$shouldBuy
 confusionMatrix(data = as.factor(valid$shouldBuy),
                 reference = as.factor(valid.true))
 
-inner_train.model.prob = predict(dt, inner_train.model, prob = TRUE)
-valid.model.prob = predict(dt, valid.model, prob = TRUE)
-
-
-
-valid.roc = multiclass.roc(valid$shouldBuy, as.numeric(valid.prob))
+valid.model$shouldBuy = predict(dt, valid.model, prob = TRUE)
+valid.roc = multiclass.roc(response = valid.true[!mask.valid], predictor=as.numeric(valid.model$shouldBuy))
 auc(valid.roc)
+
+
 
 
