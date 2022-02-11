@@ -3,6 +3,7 @@ library(ggplot2)
 library(GGally)
 library(caret)
 library(pROC)
+library(rpart.plot)
 
 data = read.csv("~/Downloads/car-purchase/assets/data/car_data.csv")
 head(data)
@@ -35,17 +36,17 @@ kfold = trainControl(method="cv",
                      classProbs = TRUE, 
                      summaryFunction = multiClassSummary)
 
-inner_train$is_high_maintenance = ifelse(inner_train$maintenance %in% c("vhigh", "high"), 1, 0)
-valid$is_high_maintenance = ifelse(valid$maintenance %in% c("vhigh", "high"), 1, 0)
-
+# inner_train$is_high_maintenance = ifelse(inner_train$maintenance %in% c("vhigh", "high"), 1, 0)
+# valid$is_high_maintenance = ifelse(valid$maintenance %in% c("vhigh", "high"), 1, 0)
 
 set.seed(42)
-dt <- train(shouldBuy ~ .,
-            data = inner_train,
+dt <- train(x = inner_train[-7],
+            y = inner_train$shouldBuy,
             method = "rpart",
             parms = list(split="gini"),
             trControl = kfold,
-            metric = "Accuracy")
+            metric = "Accuracy",
+            tuneLength = 50)
 
 inner_train.pred = predict(dt, inner_train)
 valid$shouldBuy = predict(dt, valid)
@@ -53,9 +54,10 @@ valid$shouldBuy = predict(dt, valid)
 
 confusionMatrix(data = valid$shouldBuy,
                 reference = as.factor(valid.true))
-
+confusionMatrix(data = inner_train.pred,
+                reference = as.factor(inner_train$shouldBuy))
 
 valid.roc = multiclass.roc(valid.true, as.numeric(valid$shouldBuy))
 auc(valid.roc)
 
-
+rpart.plot(dt$finalModel)
