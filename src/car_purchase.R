@@ -46,7 +46,8 @@ dt <- train(x = inner_train[-7],
             parms = list(split="gini"),
             trControl = kfold,
             metric = "Accuracy",
-            tuneLength = 50)
+            tuneLength = 50,
+            importance=TRUE)
 
 inner_train.pred = predict(dt, inner_train)
 valid$shouldBuy = predict(dt, valid)
@@ -59,5 +60,8 @@ confusionMatrix(data = inner_train.pred,
 
 valid.roc = multiclass.roc(valid.true, as.numeric(valid$shouldBuy))
 auc(valid.roc)
+valid.roc[['rocs']]
 
 rpart.plot(dt$finalModel)
+
+saveRDS(dt, "~/Downloads/car-purchase/assets/models/dt_tuned.rds")
