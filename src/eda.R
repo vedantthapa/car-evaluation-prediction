@@ -1,68 +1,86 @@
 library(dplyr)
+library(naniar)
+library(ggplot2)
+library(GGally)
+library(patchwork)
 
 inner_train = read.csv("~/Downloads/car-purchase/assets/data/trainCar.csv")
 valid = read.csv("~/Downloads/car-purchase/assets/data/validCar.csv")
 dim(inner_train)
 
+# missing val plot
 inner_train %>%
-  group_by(shouldBuy) %>%
-  summarise(n=n())
+  vis_miss()
 
-inner_train %>%
-  group_by(shouldBuy, safety) %>%
-  summarise(n=n())
+# checking for duplicates
+inner_train[duplicated(inner_train) | duplicated(inner_train, fromLast = TRUE), ]
 
-inner_train %>%
-  group_by(shouldBuy, seats) %>%
-  summarise(n=n())
+# individual distributions
+p1 = inner_train %>% 
+  count(price) %>% 
+  ggplot(aes(n, price, fill = as.factor(n))) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "", y = "", title = "Price")
 
-valid.dummy = valid[, !(names(valid) %in% c("shouldBuy"))]
+p2 = inner_train %>% 
+  count(maintenance) %>% 
+  ggplot(aes(n, maintenance, fill = as.factor(n))) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "", y = "", title = "Maintenance")
 
-dim(valid)
-dim(valid.dummy)
+p3 = inner_train %>% 
+  count(doors) %>% 
+  ggplot(aes(n, doors, fill = as.factor(n))) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "", y = "", title = "Doors")
 
-valid.dummy$shouldBuy = NA
-valid.dummy[(valid.dummy$safety == "low") | (valid.dummy$seats == 2), "shouldBuy"] = "unacc"
+p4 = inner_train %>% 
+  count(safety) %>% 
+  ggplot(aes(n, safety, fill = as.factor(n))) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "", y = "", title = "Safety")
 
-valid.subset = valid.dummy[is.na(valid.dummy$shouldBuy), ]
-valid.subset
+p5 = inner_train %>% 
+  count(storage) %>% 
+  ggplot(aes(n, storage, fill = as.factor(n))) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "", y = "", title = "Storage")
 
-dim(valid.subset)
-dim(valid.dummy[!((valid.dummy$safety == "low") | (valid.dummy$seats == 2)), ])
+p6 = inner_train %>% 
+  count(shouldBuy) %>% 
+  ggplot(aes(shouldBuy, n, fill = as.factor(n))) +
+  geom_col() +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "shouldBuy", y = "", title = "Target")
+
+p6 = inner_train %>% 
+  count(shouldBuy) %>% 
+  mutate(pct = prop.table(n)) %>% 
+  ggplot(aes(x = shouldBuy, y = pct, fill = as.factor(n), label = scales::percent(pct))) + 
+  geom_col(position = 'dodge') + 
+  geom_text(position = position_dodge(width = .9),    # move to center of bars
+            vjust = -0.5,    # nudge above top of bar
+            size = 4) + 
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() + 
+  theme(legend.position = "none") +
+  labs(x = "shouldBuy", y = "", title = "Target")
+
+((p1 + p2) / (p3 + p4) / p5) | p6
+
+##########################################################
 
 
-inner_train.rule = inner_train[(inner_train$safety == "low") | (inner_train$seats == 2), ]
-inner_train.model = inner_train[!((inner_train$safety == "low") | (inner_train$seats == 2)), ]
 
-valid.rule = valid[(valid$safety == "low") | (valid$seats == 2), ]
-valid.model = valid[!((valid$safety == "low") | (valid$seats == 2)), ]
-
-dim(inner_train)
-dim(valid)
-
-dim(inner_train.rule)
-dim(inner_train.model)
-
-dim(valid.rule)
-dim(valid.model)
-
-(inner_train) %>%
-  group_by(shouldBuy,price)%>%
-  summarise(n=n())
-
-(inner_train) %>%
-  group_by(shouldBuy,maintenance)%>%
-  summarise(n=n())
-
-(inner_train) %>%
-  group_by(shouldBuy,doors)%>%
-  summarise(n=n())
-
-(inner_train) %>%
-  group_by(shouldBuy,seats)%>%
-  summarise(n=n())
-
-(inner_train) %>%
-  group_by(shouldBuy,storage)%>%
-  summarise(n=n())
 
