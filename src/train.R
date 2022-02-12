@@ -23,8 +23,7 @@ dt <- train(x = inner_train[-7],
             method = "rpart",
             parms = list(split="gini"),
             trControl = kfold,
-            tuneLength = 15,
-            importance=TRUE)
+            tuneLength = 15)
 
 inner_train.pred = predict(dt, inner_train)
 valid$shouldBuy = predict(dt, valid)
