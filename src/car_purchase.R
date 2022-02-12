@@ -3,6 +3,7 @@ library(ggplot2)
 library(GGally)
 library(caret)
 library(pROC)
+library(rpart.plot)
 
 data = read.csv("~/Downloads/car-purchase/assets/data/car_data.csv")
 head(data)
@@ -15,6 +16,10 @@ outer_train.idx = createDataPartition(
   list=FALSE
 )
 outer_train = data[outer_train.idx,]
+test = data[-outer_train.idx, ]
+
+write.csv(outer_train, "~/Downloads/car-purchase/assets/data/outer_train.csv", row.names = F)
+write.csv(test, "~/Downloads/car-purchase/assets/data/test.csv", row.names = F)
 
 set.seed(42)
 inner_train.idx <- createDataPartition(
@@ -26,50 +31,5 @@ inner_train.idx <- createDataPartition(
 inner_train = outer_train[inner_train.idx,]
 valid = outer_train[-inner_train.idx,]
 
-valid.true = valid$shouldBuy
-valid$shouldBuy = NA
-
-inner_train$is_high_maintenance = ifelse(inner_train$maintenance %in% c("vhigh", "high"), 1, 0)
-valid$is_high_maintenance = ifelse(valid$maintenance %in% c("vhigh", "high"), 1, 0)
-
-set.seed(42)
-kfold = trainControl(method="cv",
-                     number=10,
-                     verboseIter = TRUE,
-                     summaryFunction = multiClassSummary)
-
-mask.valid = (valid$safety == "low") | (valid$seats == 2)
-mask.train = (inner_train$safety == "low") | (inner_train$seats == 2)
-
-inner_train.rule = inner_train[mask.train, ]
-inner_train.model = inner_train[!mask.train, ]
-
-valid.rule = valid[mask.valid, ]
-valid.model = valid[!mask.valid, ]
-
-set.seed(42)
-dt <- train(shouldBuy ~ .,
-            data = inner_train.model,
-            method = "rpart",
-            parms = list(split="information"),
-            trControl = kfold)
-
-inner_train.model$shouldBuy = predict(dt, inner_train.model)
-valid.model$shouldBuy = predict(dt, valid.model)
-
-inner_train.rule$shouldBuy = rep("unacc", dim(inner_train.rule)[1])
-valid.rule$shouldBuy = rep("unacc", dim(valid.rule)[1])
-
-valid[row.names(valid.model), "shouldBuy"] = as.vector(valid.model$shouldBuy)
-valid[row.names(valid.rule), "shouldBuy"] = valid.rule$shouldBuy
-
-confusionMatrix(data = as.factor(valid$shouldBuy),
-                reference = as.factor(valid.true))
-
-valid.model$shouldBuy = predict(dt, valid.model, prob = TRUE)
-valid.roc = multiclass.roc(response = valid.true[!mask.valid], predictor=as.numeric(valid.model$shouldBuy))
-auc(valid.roc)
-
-
-
-
+write.csv(inner_train, "~/Downloads/car-purchase/assets/data/inner_train.csv", row.names = F)
+write.csv(valid, "~/Downloads/car-purchase/assets/data/valid.csv", row.names = F)
