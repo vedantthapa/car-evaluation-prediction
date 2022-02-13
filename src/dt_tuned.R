@@ -21,7 +21,7 @@ set.seed(42)
 dt <- train(x = inner_train[-7],
             y = inner_train$shouldBuy,
             method = "rpart",
-            parms = list(split="gini"),
+            parms = list(split="information"),
             trControl = kfold,
             tuneLength = 15)
 

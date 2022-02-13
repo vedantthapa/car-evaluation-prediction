@@ -26,7 +26,7 @@ p1 = outer_train %>%
   theme_minimal() +
   theme(legend.position = "none") +
   labs(x = "", y = "", title = "Price")
-
+p1
 p2 = outer_train %>% 
   count(maintenance) %>% 
   ggplot(aes(n, maintenance, fill = as.factor(n))) +
