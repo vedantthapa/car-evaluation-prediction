@@ -111,7 +111,7 @@ p3 =  outer_train %>%
   geom_bar(position = "fill", stat = "identity",  colour = "black", alpha = 0.75) + 
   scale_fill_viridis(discrete = T) +
   scale_x_continuous(labels = scales::percent) +
-  labs(x = "", y = "",title = "Doors") +
+  labs(x = "", y = "",title = "Seats") +
   theme(legend.position="none")
 
 p4 =  outer_train %>%
@@ -144,3 +144,32 @@ p6 =  outer_train %>%
   theme(legend.position="none")
 
 (p1 + p2) / (p3 + p4) / (p5 + p6)
+
+# roc analysis
+acc = roc(test$shouldBuy,test.probs[,1])
+good = roc(test$shouldBuy,test.probs[,2])
+unacc = roc(test$shouldBuy,test.probs[,3])
+vgood = roc(test$shouldBuy,test.probs[,4])
+
+acc.auc = round(auc(acc), 4)
+good.auc = round(auc(good), 4)
+unacc.auc = round(auc(unacc), 4)
+vgood.auc = round(auc(vgood), 4)
+
+p1 = ggroc(acc, colour = 'steelblue', size = 2) +
+  ggtitle(paste0('Label: Acc ', '(AUC = ', acc.auc, ')')) + 
+  labs(x = "FPR (1-Specificity)", y = "TPR (Sensitivity)")
+
+p2 = ggroc(good, colour = 'steelblue', size = 2) +
+  ggtitle(paste0('Label: Good ', '(AUC = ', good.auc, ')')) + 
+  labs(x = "FPR (1-Specificity)", y = "TPR (Sensitivity)")
+
+p3 = ggroc(unacc, colour = 'steelblue', size = 2) +
+  ggtitle(paste0('Label: Unacc ', '(AUC = ', unacc.auc, ')')) + 
+  labs(x = "FPR (1-Specificity)", y = "TPR (Sensitivity)")
+
+p4 = ggroc(vgood, colour = 'steelblue', size = 2) +
+  ggtitle(paste0('Label: Vgood ', '(AUC = ', vgood.auc, ')')) + 
+  labs(x = "FPR (1-Specificity)", y = "TPR (Sensitivity)")
+
+(p1 + p2) / (p3 + p4)

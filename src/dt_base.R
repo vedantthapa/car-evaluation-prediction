@@ -1,3 +1,4 @@
+#imports
 library(dplyr)
 library(ggplot2)
 library(GGally)
@@ -5,17 +6,21 @@ library(caret)
 library(pROC)
 library(rpart.plot)
 
+# read data
 inner_train = read.csv("~/Downloads/car-purchase/assets/data/inner_train.csv")
 valid = read.csv("~/Downloads/car-purchase/assets/data/valid.csv")
 
+# subset validation to exclude target var
 valid.true = valid$shouldBuy
 valid = select(valid, -c(shouldBuy))
 
+# train
 dt_base_base = rpart(shouldBuy ~ ., 
                      data = inner_train, 
                      method = "class",
                      parms = list(split = "information"))
 
+# inference on validation
 inner_train.pred = predict(dt_base, inner_train, type = "class")
 valid$shouldBuy = predict(dt_base, valid, type = "class")
 

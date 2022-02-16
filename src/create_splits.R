@@ -1,3 +1,4 @@
+# imports
 library(dplyr)
 library(ggplot2)
 library(GGally)
@@ -5,9 +6,11 @@ library(caret)
 library(pROC)
 library(rpart.plot)
 
+# read data
 data = read.csv("~/Downloads/car-purchase/assets/data/car_data.csv")
 head(data)
 
+# create train-test partition
 set.seed(42)
 outer_train.idx = createDataPartition(
   data$shouldBuy,
@@ -18,9 +21,11 @@ outer_train.idx = createDataPartition(
 outer_train = data[outer_train.idx,]
 test = data[-outer_train.idx, ]
 
+# save partitions
 write.csv(outer_train, "~/Downloads/car-purchase/assets/data/outer_train.csv", row.names = F)
 write.csv(test, "~/Downloads/car-purchase/assets/data/test.csv", row.names = F)
 
+# create inner train-valid partition
 set.seed(42)
 inner_train.idx <- createDataPartition(
   outer_train$shouldBuy,
@@ -31,5 +36,6 @@ inner_train.idx <- createDataPartition(
 inner_train = outer_train[inner_train.idx,]
 valid = outer_train[-inner_train.idx,]
 
+# save partitions
 write.csv(inner_train, "~/Downloads/car-purchase/assets/data/inner_train.csv", row.names = F)
 write.csv(valid, "~/Downloads/car-purchase/assets/data/valid.csv", row.names = F)
